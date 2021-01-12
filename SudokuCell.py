@@ -12,14 +12,35 @@ class SudokuCell:
             raise Exception("Value {} already taken!".format(value))
 
         self.possibleValues.remove(value)
-        self.numberCells[index].value = value
+        self.numberCells[index].setValue(value)
+        for i, number in enumerate(self.numberCells):
+            filled = number.removePossibleValue(value)
+            if filled > 0:
+                self.fillValue(i, filled)
 
     def getCellAt(self, index):
         return self.numberCells[index]
 
-    def checkRow(self, columns):
-        if len(columns) != self.cellSize:
-            raise Exception("Invalid number of columns fed")
+    def checkCell(self):
+        """
+        Check if there exists one number cell that contains a possible value only it
+        can have
+        :return:
+        """
+        filled = False
+        for value in self.possibleValues.copy():
+            potentialCount = 0
+            potentialSquare = 0
+            for index, number in enumerate(self.numberCells):
+                if value in number.possibleValues:
+                    potentialCount += 1
+                    potentialSquare = index
+                if potentialCount > 1:
+                    break
+            if potentialCount == 1:
+                self.fillValue(potentialSquare, value)
+                filled = True
+        return filled
 
     def __contains__(self, item):
         return item not in self.possibleValues

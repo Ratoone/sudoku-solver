@@ -1,7 +1,7 @@
 from SudokuPuzzle import SudokuPuzzle
 
 if __name__ == '__main__':
-    sudoku = SudokuPuzzle.createFromFile("Sample Puzzles/puzzle1.txt")
+    sudoku = SudokuPuzzle.createFromFile("Sample Puzzles/puzzle2.txt")
 
     modified = True
 

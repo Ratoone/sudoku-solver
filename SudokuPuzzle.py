@@ -1,6 +1,7 @@
+import re
+
 import numpy as np
 
-from SudokuNumberCell import SudokuNumberCell
 from SudokuCell import SudokuCell
 
 
@@ -23,8 +24,6 @@ class SudokuPuzzle:
                         self.colValues[j].add(puzzle[i][j])
                         self.fillAt(i, j, puzzle[i][j])
 
-    # TODO: cross checks?
-
     def fillAt(self, i, j, value):
         index = (i % self.cellSize) * self.cellSize + j % self.cellSize
         self.cells[self.coordinatesToCell(i, j)].fillValue(index, value)
@@ -45,34 +44,51 @@ class SudokuPuzzle:
             return False
 
         modified = False
-        index = 0
-        while index < len(currentNumber.possibleValues):
-            value = currentNumber.possibleValues[index]
+        for value in currentNumber.possibleValues.copy():
             if value in self.rowValues[i] or \
                     value in self.colValues[j] or \
                     value in self.cells[self.coordinatesToCell(i, j)]:
                 currentNumber.removePossibleValue(value)
                 modified = True
-            else:
-                index += 1
 
         if currentNumber.value != 0:
             value = currentNumber.value
-            self.rowValues[i].add(value)
-            self.colValues[j].add(value)
             self.fillAt(i, j, value)
+            self.updateAll()
             modified = True
+
+        if not modified:
+            for cell in self.cells:
+                modified = cell.checkCell() or modified
+
+            if modified:
+                self.updateAll()
 
         return modified
 
-    def printSudoku(self) -> np.ndarray:
+    def updateAll(self):
+        for i in range(self.size):
+            for j in range(self.size):
+                currentCell = self.getCellAt(i, j)
+                if currentCell.value != 0:
+                    self.rowValues[i].add(currentCell.value)
+                    self.colValues[j].add(currentCell.value)
+                else:
+                    currentCell.possibleValues = currentCell.possibleValues.difference(self.rowValues[i])
+                    currentCell.possibleValues = currentCell.possibleValues.difference(self.colValues[j])
+                    if len(currentCell.possibleValues) == 1:
+                        self.fillAt(i, j, currentCell.possibleValues.pop())
+                        self.updateAll()
+                        return
+
+    def printSudoku(self):
         output = []
         for i in range(self.size):
             output.append([])
             for j in range(self.size):
                 output[-1].append(self.getCellAt(i, j).value)
 
-        return np.array(output)
+        return re.sub("[\[\]. ]", "", np.array2string(np.array(output), separator="|")) + "|"
 
     @staticmethod
     def createFromFile(path):
