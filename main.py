@@ -14,3 +14,4 @@ if __name__ == '__main__':
                 modified = modified or sudoku.checkAtRowCol(i, j)
 
     print(sudoku.printSudoku())
+    print(iterations)

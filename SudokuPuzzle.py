@@ -1,6 +1,7 @@
 import numpy as np
 
 from SudokuNumberCell import SudokuNumberCell
+from SudokuCell import SudokuCell
 
 
 class SudokuPuzzle:
@@ -13,19 +14,24 @@ class SudokuPuzzle:
 
         self.rowValues = [set() for _ in range(size)]
         self.colValues = [set() for _ in range(size)]
-        self.cellValues = [set() for _ in range(size)]
+        self.cells = [SudokuCell(self.cellSize) for _ in range(size)]
         if puzzle is not None:
-            self.puzzle = []
             for i in range(size):
-                self.puzzle.append([])
                 for j in range(size):
-                    self.puzzle[-1].append(SudokuNumberCell(puzzle[i][j], size))
                     if puzzle[i][j] != 0:
                         self.rowValues[i].add(puzzle[i][j])
                         self.colValues[j].add(puzzle[i][j])
-                        self.cellValues[self.coordinatesToCell(i, j)].add(puzzle[i][j])
-        else:
-            self.puzzle = size * [size * [SudokuNumberCell(0, size)]]
+                        self.fillAt(i, j, puzzle[i][j])
+
+    # TODO: cross checks?
+
+    def fillAt(self, i, j, value):
+        index = (i % self.cellSize) * self.cellSize + j % self.cellSize
+        self.cells[self.coordinatesToCell(i, j)].fillValue(index, value)
+
+    def getCellAt(self, i, j):
+        index = (i % self.cellSize) * self.cellSize + j % self.cellSize
+        return self.cells[self.coordinatesToCell(i, j)].getCellAt(index)
 
     def coordinatesToCell(self, i, j) -> int:
         reducedRowNumber = i // self.cellSize
@@ -33,7 +39,7 @@ class SudokuPuzzle:
         return int(reducedRowNumber * self.cellSize + reducedColNumber)
 
     def checkAtRowCol(self, i, j) -> bool:
-        currentNumber = self.puzzle[i][j]
+        currentNumber = self.getCellAt(i, j)
 
         if currentNumber.value != 0:
             return False
@@ -44,18 +50,17 @@ class SudokuPuzzle:
             value = currentNumber.possibleValues[index]
             if value in self.rowValues[i] or \
                     value in self.colValues[j] or \
-                    value in self.cellValues[self.coordinatesToCell(i, j)]:
-                currentNumber.possibleValues.remove(value)
+                    value in self.cells[self.coordinatesToCell(i, j)]:
+                currentNumber.removePossibleValue(value)
                 modified = True
             else:
                 index += 1
 
-        if len(currentNumber.possibleValues) == 1:
-            value = currentNumber.possibleValues[0]
-            currentNumber.value = value
+        if currentNumber.value != 0:
+            value = currentNumber.value
             self.rowValues[i].add(value)
             self.colValues[j].add(value)
-            self.cellValues[self.coordinatesToCell(i, j)].add(value)
+            self.fillAt(i, j, value)
             modified = True
 
         return modified
@@ -65,7 +70,7 @@ class SudokuPuzzle:
         for i in range(self.size):
             output.append([])
             for j in range(self.size):
-                output[-1].append(self.puzzle[i][j].value)
+                output[-1].append(self.getCellAt(i, j).value)
 
         return np.array(output)
 
