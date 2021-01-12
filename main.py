@@ -13,5 +13,8 @@ if __name__ == '__main__':
             for j in range(sudoku.size):
                 modified = modified or sudoku.checkAtRowCol(i, j)
 
-    print(sudoku.printSudoku())
-    print(iterations)
+    if sudoku.isProper():
+        print("The specified sudoku is a proper one. Solution:")
+        print(sudoku.prettyPrint())
+    else:
+        print("The specified sudoku is not proper!")

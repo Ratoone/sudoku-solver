@@ -81,14 +81,21 @@ class SudokuPuzzle:
                         self.updateAll()
                         return
 
-    def printSudoku(self):
+    def printSudokuToArray(self):
         output = []
         for i in range(self.size):
             output.append([])
             for j in range(self.size):
                 output[-1].append(self.getCellAt(i, j).value)
 
-        return re.sub("[\[\]. ]", "", np.array2string(np.array(output), separator="|")) + "|"
+        return np.array(output)
+
+    def prettyPrint(self):
+        output = self.printSudokuToArray()
+        return "|" + re.sub("[\[\]. ]", "", np.array2string(output, separator="|")).replace("\n", "\n|") + "|"
+
+    def isProper(self) -> bool:
+        return 0 not in self.printSudokuToArray()
 
     @staticmethod
     def createFromFile(path):
